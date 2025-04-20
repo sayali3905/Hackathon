@@ -120,47 +120,55 @@ def burnout_analysis():
 # """
 
     prompt = f"""
-You're my wellness assistant.
+    You're my wellness assistant.
 
-This is my academic workload for the {view.lower()} period ({start.date()} to {end.date()}):
+    This is my academic workload for the {view.lower()} period ({start.date()} to {end.date()}):
 
-Assignments due: {num_assignments}
-Quizzes/Exams: {num_quizzes}
-Total Points: {total_points}
-Overlapping Deadlines: {len(overlapping_tasks)}
-Days with Multiple Deadlines: {', '.join(multiple_deadlines) or 'None'}
-Earliest Due: {summary_df['due_at'].min()}
-Latest Due: {summary_df['due_at'].max()}
+    Assignments due: {num_assignments}
+    Quizzes/Exams: {num_quizzes}
+    Total Points: {total_points}
+    Overlapping Deadlines: {len(overlapping_tasks)}
+    Days with Multiple Deadlines: {', '.join(multiple_deadlines) or 'None'}
+    Earliest Due: {summary_df['due_at'].min()}
+    Latest Due: {summary_df['due_at'].max()}
 
-Upcoming Tasks Table:
-Format: [Due Date] - [Course Name] - [Title] - [Points]
+    Upcoming Tasks Table:
+    Format: [Due Date] - [Course Name] - [Title] - [Points]
 
-{table}
+    {table}
 
-Please return your response in *plain text* only, following this exact format:
+    Please return your response in *plain text* only, following this exact format:
 
-Burnout Risk: <percent from 0-100>
-Reasons:
-1. <reason 1>
-2. <reason 2>
-3. <reason 3>
-Strategies:
-1. <strategy 1>
-2. <strategy 2>
-3. <strategy 3>
-Wellness Habits:
-1. <habit 1>
-2. <habit 2>
-3. <habit 3>
-Most Stressful Day: <day and why>
+    BURNOUT RISK: <percent from 0-100> %
+    Reasons:
+    1. <reason 1>
+    2. <reason 2>
+    3. <reason 3>
+    Strategies:
+    1. <strategy 1>
+    2. <strategy 2>
+    3. <strategy 3>
+    Wellness Habits:
+    1. <habit 1>
+    2. <habit 2>
+    3. <habit 3>
+    Most Stressful Day: <day and why>
 
-Then, reprint the same table again under this heading:
+    Then, reprint the same table again under this heading:
 
-Formatted Table of Tasks:
-<print the same table as above>
+    Formatted Table of Tasks:
 
-Do not include any introductions, summaries, emojis, markdown, or stars. Keep it flat, clean, and structured.
-"""
+    +---------------------+-------------------------+------------------------------+--------+
+    |      Due Date       |       Course Name       |            Title             | Points |
+    +---------------------+-------------------------+------------------------------+--------+
+    | YYYY-MM-DD HH:MM    | Course ABC              | Assignment 1                 |  100   |
+    | YYYY-MM-DD HH:MM    | Course XYZ              | Midterm Exam                 |  150   |
+    | ...                 | ...                     | ...                          |  ...   |
+    +---------------------+-------------------------+------------------------------+--------+
+
+    Align all rows neatly. Keep spacing and alignment consistent. Do not add any extra commentary or explanation.
+    """
+
 
     # Call LLM
     response = cerebras_client.chat.completions.create(
