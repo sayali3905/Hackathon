@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from pymongo import MongoClient
 import certifi
+import os
 
 # MongoDB Atlas connection
 client = MongoClient(
@@ -36,4 +37,5 @@ def get_assignments(email):
     return jsonify(assignments)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))  # Render sets PORT dynamically
+    app.run(host="0.0.0.0", port=port)
