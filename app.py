@@ -94,29 +94,72 @@ def burnout_analysis():
     for _, row in summary_df.iterrows():
         table += f"| {row['due_at'].strftime('%Y-%m-%d %H:%M')} | {row['course_name']} | {row['title']} | {int(row['points'])} |\n"
 
+#     prompt = f"""
+# You are my AI wellness assistant.
+
+# This is my workload for the {view.lower()} period ({start.date()} to {end.date()}):
+
+# - 📚 Assignments due: {num_assignments}
+# - 🧪 Quizzes or Exams: {num_quizzes}
+# - 🎯 Total Points: {total_points}
+# - 🔁 Overlapping deadlines: {len(overlapping_tasks)}
+# - 📆 Days with multiple deadlines: {', '.join(multiple_deadlines) or 'None'}
+# - 🕰 Earliest to latest due: {summary_df['due_at'].min()} → {summary_df['due_at'].max()}
+
+# Here is a table of my upcoming tasks:
+
+# {table}
+
+# Now, please help me with the following:
+
+# 1. What is my burnout risk (0–100%)?
+# 2. List 3 reasons why my workload might be stressful.
+# 3. Suggest 3 ways I can manage my time/stress better.
+# 4. Recommend 3 daily wellness habits.
+# 5. Identify the most stressful day and why.
+# """
+
     prompt = f"""
-You are my AI wellness assistant.
+You're my wellness assistant.
 
-This is my workload for the {view.lower()} period ({start.date()} to {end.date()}):
+This is my academic workload for the {view.lower()} period ({start.date()} to {end.date()}):
 
-- 📚 Assignments due: {num_assignments}
-- 🧪 Quizzes or Exams: {num_quizzes}
-- 🎯 Total Points: {total_points}
-- 🔁 Overlapping deadlines: {len(overlapping_tasks)}
-- 📆 Days with multiple deadlines: {', '.join(multiple_deadlines) or 'None'}
-- 🕰 Earliest to latest due: {summary_df['due_at'].min()} → {summary_df['due_at'].max()}
+Assignments due: {num_assignments}
+Quizzes/Exams: {num_quizzes}
+Total Points: {total_points}
+Overlapping Deadlines: {len(overlapping_tasks)}
+Days with Multiple Deadlines: {', '.join(multiple_deadlines) or 'None'}
+Earliest Due: {summary_df['due_at'].min()}
+Latest Due: {summary_df['due_at'].max()}
 
-Here is a table of my upcoming tasks:
+Upcoming Tasks Table:
+Format: [Due Date] - [Course Name] - [Title] - [Points]
 
 {table}
 
-Now, please help me with the following:
+Please return your response in *plain text* only, following this exact format:
 
-1. What is my burnout risk (0–100%)?
-2. List 3 reasons why my workload might be stressful.
-3. Suggest 3 ways I can manage my time/stress better.
-4. Recommend 3 daily wellness habits.
-5. Identify the most stressful day and why.
+Burnout Risk: <percent from 0-100>
+Reasons:
+1. <reason 1>
+2. <reason 2>
+3. <reason 3>
+Strategies:
+1. <strategy 1>
+2. <strategy 2>
+3. <strategy 3>
+Wellness Habits:
+1. <habit 1>
+2. <habit 2>
+3. <habit 3>
+Most Stressful Day: <day and why>
+
+Then, reprint the same table again under this heading:
+
+Formatted Table of Tasks:
+<print the same table as above>
+
+Do not include any introductions, summaries, emojis, markdown, or stars. Keep it flat, clean, and structured.
 """
 
     # Call LLM
