@@ -3,12 +3,15 @@ from pymongo import MongoClient
 import certifi
 import os
 
-# MongoDB Atlas connection
+# ✅ Use the Mongo URI from environment variable
+MONGO_URI = os.environ.get("MONGO_URI")
+
 client = MongoClient(
-    "mongodb+srv://<username>:<password>@cluster0.4rmaq8m.mongodb.net/burnout_detector?retryWrites=true&w=majority",
+    MONGO_URI,
     tls=True,
     tlsCAFile=certifi.where()
 )
+
 
 db = client["burnout_detector"]
 users_col = db["users"]
