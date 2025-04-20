@@ -53,18 +53,19 @@ def ping_mongo():
     except Exception as e:
         return f"❌ MongoDB error: {str(e)}", 500
     
-def format_task_table(df):
-    rows = []
-    for _, row in df.iterrows():
-        rows.append(f"| {row['due_at'].strftime('%Y-%m-%d %H:%M'):<19} | {row['course_name']:<23} | {row['title']:<28} | {str(int(row['points'])):^6} |")
-    header = (
-        "+---------------------+-------------------------+------------------------------+--------+\n"
-        "|      Due Date       |       Course Name       |            Title             | Points |\n"
-        "+---------------------+-------------------------+------------------------------+--------+"
-    )
-    table = "\n".join([header] + rows + ["+---------------------+-------------------------+------------------------------+--------+"])
-    return table    
+# def format_task_table(df):
+#     rows = []
+#     for _, row in df.iterrows():
+#         rows.append(f"| {row['due_at'].strftime('%Y-%m-%d %H:%M'):<19} | {row['course_name']:<23} | {row['title']:<28} | {str(int(row['points'])):^6} |")
+#     header = (
+#         "+---------------------+-------------------------+------------------------------+--------+\n"
+#         "|      Due Date       |       Course Name       |            Title             | Points |\n"
+#         "+---------------------+-------------------------+------------------------------+--------+"
+#     )
+#     table = "\n".join([header] + rows + ["+---------------------+-------------------------+------------------------------+--------+"])
+#     return table    
 
+@app.route("/api/burnout-analysis", methods=["POST"])
 @app.route("/api/burnout-analysis", methods=["POST"])
 def burnout_analysis():
     data = request.get_json()
@@ -80,7 +81,6 @@ def burnout_analysis():
     df['due_at'] = pd.to_datetime(df['due_at'], errors='coerce', utc=True)
     selected_date = pd.to_datetime(selected_date, utc=True)
 
-    # Get date range based on view
     def get_date_range(view_type, selected_date):
         if view_type == "Day":
             return selected_date, selected_date
@@ -101,8 +101,20 @@ def burnout_analysis():
     overlapping_tasks = summary_df['due_at'].dt.date.value_counts()
     multiple_deadlines = overlapping_tasks[overlapping_tasks > 1].index.astype(str).tolist()
 
-    # Build plain text ASCII-style table
-    ascii_table = format_task_table(summary_df)
+    # Build ASCII-style table directly here
+    header = (
+        "+---------------------+-------------------------+------------------------------+--------+\n"
+        "|      Due Date       |       Course Name       |            Title             | Points |\n"
+        "+---------------------+-------------------------+------------------------------+--------+"
+    )
+    rows = []
+    for _, row in summary_df.iterrows():
+        due_at_str = row['due_at'].strftime('%Y-%m-%d %H:%M')
+        course_name = str(row['course_name']) if pd.notnull(row['course_name']) else "N/A"
+        title = str(row['title']) if pd.notnull(row['title']) else "N/A"
+        points = str(int(row['points'])) if pd.notnull(row['points']) else "0"
+        rows.append(f"| {due_at_str:<19} | {course_name:<23} | {title:<28} | {points:^6} |")
+    ascii_table = "\n".join([header] + rows + ["+---------------------+-------------------------+------------------------------+--------+"])
 
     prompt = f"""
 You're my wellness assistant.
@@ -147,7 +159,6 @@ Formatted Table of Tasks:
 Align all rows neatly. Keep spacing and alignment consistent. Do not add any extra commentary or explanation.
 """
 
-    # Call LLM
     response = cerebras_client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
         model="llama-4-scout-17b-16e-instruct"
@@ -155,15 +166,13 @@ Align all rows neatly. Keep spacing and alignment consistent. Do not add any ext
 
     reply = response.choices[0].message.content
 
-    # Extract burnout %
     match = re.search(r'(\d{1,3})\s?%', reply)
     burnout = int(match.group(1)) if match else 64
     stress_level = "High" if burnout > 75 else "Moderate" if burnout > 50 else "Low"
 
-    # Weekly map coloring (based on stress level)
     week_map = {}
     for d in summary_df['due_at']:
-        day_letter = d.strftime('%a')[0]  # e.g., 'M', 'T', etc.
+        day_letter = d.strftime('%a')[0]
         week_map[day_letter] = "bg-red-500" if stress_level == "High" else "bg-orange-400" if stress_level == "Moderate" else "bg-green-500"
 
     return jsonify({
@@ -172,6 +181,7 @@ Align all rows neatly. Keep spacing and alignment consistent. Do not add any ext
         "summary": reply,
         "weeklyStressMap": week_map
     })
+
 
 
 
