@@ -66,7 +66,6 @@ def ping_mongo():
 #     return table    
 
 @app.route("/api/burnout-analysis", methods=["POST"])
-@app.route("/api/burnout-analysis", methods=["POST"])
 def burnout_analysis():
     data = request.get_json()
     email = data.get("email")
@@ -101,7 +100,7 @@ def burnout_analysis():
     overlapping_tasks = summary_df['due_at'].dt.date.value_counts()
     multiple_deadlines = overlapping_tasks[overlapping_tasks > 1].index.astype(str).tolist()
 
-    # Build ASCII-style table directly here
+    # Build improved ASCII-style table
     header = (
         "+---------------------+-------------------------+------------------------------+--------+\n"
         "|      Due Date       |       Course Name       |            Title             | Points |\n"
@@ -113,8 +112,17 @@ def burnout_analysis():
         course_name = str(row['course_name']) if pd.notnull(row['course_name']) else "N/A"
         title = str(row['title']) if pd.notnull(row['title']) else "N/A"
         points = str(int(row['points'])) if pd.notnull(row['points']) else "0"
-        rows.append(f"| {due_at_str:<19} | {course_name:<23} | {title:<28} | {points:^6} |")
-    ascii_table = "\n".join([header] + rows + ["+---------------------+-------------------------+------------------------------+--------+"])
+
+        # Truncate if too long
+        course_name = course_name[:23]
+        title = title[:28]
+
+        # Proper fixed-width formatting
+        line = f"| {due_at_str:<19} | {course_name:<23} | {title:<28} | {points:>6} |"
+        rows.append(line)
+
+    footer = "+---------------------+-------------------------+------------------------------+--------+"
+    ascii_table = "\n".join([header] + rows + [footer])
 
     prompt = f"""
 You're my wellness assistant.
