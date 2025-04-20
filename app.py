@@ -39,6 +39,16 @@ def get_assignments(email):
         a["_id"] = str(a["_id"])
     return jsonify(assignments)
 
+@app.route("/api/ping")
+def ping_mongo():
+    try:
+        client.admin.command("ping")
+        return "✅ MongoDB Atlas is reachable!"
+    except Exception as e:
+        return f"❌ MongoDB error: {str(e)}", 500
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))  # Render sets PORT dynamically
     app.run(host="0.0.0.0", port=port)
+
