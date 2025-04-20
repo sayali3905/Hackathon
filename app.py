@@ -52,8 +52,7 @@ def ping_mongo():
         return "✅ MongoDB Atlas is reachable!"
     except Exception as e:
         return f"❌ MongoDB error: {str(e)}", 500
-
-@app.route("/api/burnout-analysis", methods=["POST"])
+    
 def format_task_table(df):
     rows = []
     for _, row in df.iterrows():
@@ -64,8 +63,9 @@ def format_task_table(df):
         "+---------------------+-------------------------+------------------------------+--------+"
     )
     table = "\n".join([header] + rows + ["+---------------------+-------------------------+------------------------------+--------+"])
-    return table
+    return table    
 
+@app.route("/api/burnout-analysis", methods=["POST"])
 def burnout_analysis():
     data = request.get_json()
     email = data.get("email")
